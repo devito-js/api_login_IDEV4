@@ -129,7 +129,7 @@ routes.get('/ranking/melhores-tempos', (req, res) => {
     FROM corredores c
     LEFT JOIN voltas v ON c.id = v.corredores_id
     GROUP BY c.id, c.nome, c.turma
-    ORDER BY melhor_tempo ASC
+    ORDER BY melhor_tempo IS NULL, melhor_tempo ASC
   `, (err, results) => {
     if (err) {
       res.status(500).json({ error: 'Erro ao buscar ranking' });
@@ -140,3 +140,22 @@ routes.get('/ranking/melhores-tempos', (req, res) => {
 });
 
 module.exports = routes;
+
+// Endpoint para buscar as últimas voltas de todos os corredores
+routes.get('/voltas/recentes', (req, res) => {
+  // Retorna as 10 voltas mais recentes, com nome do corredor
+  const sql = `
+    SELECT v.id, v.tempo, v.data, c.nome as corredor_nome, c.turma
+    FROM voltas v
+    JOIN corredores c ON v.corredores_id = c.id
+    ORDER BY v.data DESC
+    LIMIT 10
+  `;
+  db.query(sql, (err, results) => {
+    if (err) {
+      res.status(500).json({ error: 'Erro ao buscar voltas recentes' });
+    } else {
+      res.json(results);
+    }
+  });
+});
