@@ -2,7 +2,6 @@ const express = require('express');
 const routes = express.Router();
 const db = require('../db');
 
-//CRUD - Create, Read, Update, Delete
 //Get all corredores
 routes.get('/', (req, res) => {
   db.query('SELECT * FROM corredores', (err, results) => {
@@ -81,7 +80,6 @@ routes.post('/:id/volta', (req, res) => {
     } else if (results.length === 0) {
       res.status(404).json({ error: 'Corredor não encontrado' });
     } else {
-      // Registra a volta
       db.query('INSERT INTO voltas (tempo, data, corredores_id) VALUES (?, NOW(), ?)',
         [tempo, id], (err, results) => {
           if (err) {
@@ -143,7 +141,6 @@ module.exports = routes;
 
 // Endpoint para buscar as últimas voltas de todos os corredores
 routes.get('/voltas/recentes', (req, res) => {
-  // Retorna as 10 voltas mais recentes, com nome do corredor
   const sql = `
     SELECT v.id, v.tempo, v.data, c.nome as corredor_nome, c.turma
     FROM voltas v

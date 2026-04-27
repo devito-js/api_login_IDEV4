@@ -2,8 +2,8 @@ const express = require('express');
 const routes = express.Router();
 const db = require('../db');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
-//CRUD - Create, Read, Update, Delete
 //Get all em usuarios
 routes.get('/', (req, res) => {
   db.query('SELECT * FROM usuarios', (err, results) => {
@@ -18,12 +18,11 @@ routes.get('/', (req, res) => {
 //Login de usuario
 routes.post('/login', async (req, res) => {
   const { email, senha } = req.body;
-  
+
   if (!email || !senha) {
     return res.status(400).json({ error: 'Email e senha são obrigatórios' });
   }
-    try {
-    // Buscar usuário pelo email
+  try {
     db.query('SELECT * FROM usuarios WHERE email = ?', [email], async (err, results) => {
       if (err) {
         res.status(500).json({ error: 'Erro ao fazer login' });
@@ -32,16 +31,16 @@ routes.post('/login', async (req, res) => {
           res.status(401).json({ error: 'Credenciais inválidas' });
         } else {
           const user = results[0];
-          
-          // Comparar senha com hash usando bcrypt
           const senhaValida = await bcrypt.compare(senha, user.senha);
-          
           if (senhaValida) {
-            // Remove a senha da resposta por segurança
+            const token = jwt.sign({id:user.id, email:user.email},
+              process.env.JWT_SECRET, {expiresIn: '8h'});
+
             delete user.senha;
-            res.status(200).json({ 
+            res.status(200).json({
               message: 'Login realizado com sucesso',
-              user: user
+              user: user,
+              token: token
             });
           } else {
             res.status(401).json({ error: 'Credenciais inválidas' });
@@ -58,11 +57,9 @@ routes.post('/login', async (req, res) => {
 //Criar um novo usuario
 routes.post('/create', async (req, res) => {
   const { nome, email, senha } = req.body;
-  
+
   try {
-    // Hash da senha usando bcrypt
     const senhaHash = await bcrypt.hash(senha, 10);
-    
     db.query('INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',
       [nome, email, senhaHash], (err, results) => {
         if (err) {
@@ -81,15 +78,13 @@ routes.post('/create', async (req, res) => {
 routes.put('/edit/:id', async (req, res) => {
   const { id } = req.params;
   const { nome, email, senha } = req.body;
-  
+
   try {
     let senhaHash = senha;
-    
-    // Se uma nova senha foi fornecida, fazer o hash
     if (senha && senha.length > 0) {
       senhaHash = await bcrypt.hash(senha, 10);
     }
-    
+
     db.query('UPDATE usuarios SET nome = ?, email = ?, senha = ? WHERE id = ?',
       [nome, email, senhaHash, id], (err, results) => {
         if (err) {
@@ -98,6 +93,7 @@ routes.put('/edit/:id', async (req, res) => {
           res.status(200).json({ id, nome, email });
         }
       });
+
   } catch (error) {
     console.error('Erro ao editar usuário:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
