@@ -19,7 +19,9 @@ routes.post('/gerarvoltas', (req, res) => {
         error: 'Nenhum corredor encontrado'
       });
     }
+    
     let totalInseridos = 0;
+
     results.forEach((corredor) => {
       for (let i = 0; i < voltasPorCorredor; i++) {  
         const tempoAleatorio = (
