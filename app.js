@@ -14,7 +14,9 @@ app.use((req, res, next) => {
 //Rotas
 const userRoutes = require('./routes/users');
 const corredorRoutes = require('./routes/corredor');
+const geradorRoutes = require('./routes/gerador');
 app.use('/users', userRoutes);
 app.use('/corredores', corredorRoutes);
+app.use('/gerador', geradorRoutes);
 
 module.exports = app;

@@ -137,7 +137,7 @@ routes.get('/ranking/melhores-tempos', (req, res) => {
   });
 });
 
-module.exports = routes;
+
 
 // Endpoint para buscar as últimas voltas de todos os corredores
 routes.get('/voltas/recentes', (req, res) => {
@@ -156,3 +156,5 @@ routes.get('/voltas/recentes', (req, res) => {
     }
   });
 });
+
+module.exports = routes;
